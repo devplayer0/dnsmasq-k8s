@@ -1,0 +1,10 @@
+version: '3'
+services:
+  dnsmasq:
+    image: ghcr.io/devplayer0/dnsmasq:latest
+    build: .
+    volumes:
+      - ./dnsmasq.conf:/run/config/dnsmasq.conf
+  test_client:
+    image: alpine:3.12
+    command: [sleep, infinity]
