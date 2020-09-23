@@ -2,6 +2,8 @@
 set -e
 
 ARGS="--conf-file=/run/config/dnsmasq.conf"
+dnsmasq $ARGS --test
+
 if [ -n "$DEBUG" ] && [ "$DEBUG" != "no" ]; then
     ARGS="$ARGS --no-daemon"
 else

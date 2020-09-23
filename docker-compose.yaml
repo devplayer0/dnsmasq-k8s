@@ -3,8 +3,11 @@ services:
   dnsmasq:
     image: ghcr.io/devplayer0/dnsmasq:latest
     build: .
+    environment:
+      - DEBUG=yes
     volumes:
-      - ./dnsmasq.conf:/run/config/dnsmasq.conf
+      - ./dnsmasq.conf:/run/config/dnsmasq.conf:ro
   test_client:
     image: alpine:3.12
     command: [sleep, infinity]
+    stop_signal: SIGKILL
