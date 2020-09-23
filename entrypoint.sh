@@ -10,4 +10,6 @@ else
     ARGS="$ARGS --keep-in-foreground"
 fi
 
+ARGS="$ARGS --dhcp-leasefile=/var/lib/dnsmasq/leases.txt"
+
 exec dnsmasq $ARGS "$@"
