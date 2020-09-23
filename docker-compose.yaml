@@ -5,8 +5,10 @@ services:
     build: .
     environment:
       - DEBUG=yes
+      - ROUTER_NETWORK=172.24.0.0/16
     volumes:
       - ./dnsmasq.conf:/run/config/dnsmasq.conf:ro
+    cap_add: [NET_ADMIN]
   test_client:
     image: alpine:3.12
     command: [sleep, infinity]
