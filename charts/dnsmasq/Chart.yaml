@@ -1,0 +1,6 @@
+apiVersion: v2
+name: dnsmasq
+description: dnsmasq DHCP server on Kubernetes (via kubelan)
+type: application
+version: 0.1.0
+appVersion: latest

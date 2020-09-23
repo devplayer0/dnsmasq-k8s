@@ -1,0 +1,125 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "dnsmasq.fullname" . }}
+  labels:
+    {{- include "dnsmasq.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  serviceName: {{ include "dnsmasq.fullname" . }}
+  selector:
+    matchLabels:
+      {{- include "dnsmasq.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+    {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      labels:
+        {{- include "dnsmasq.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "dnsmasq.serviceAccountName" . }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: DEBUG
+              value: {{ .Values.debug | squote }}
+            - name: ROUTER_NETWORK
+              value: {{ .Values.routerNetwork | squote }}
+          livenessProbe:
+            exec:
+              command: [nslookup, one.one.one.one, '127.0.0.1']
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          ports:
+            - name: dns
+              containerPort: {{ .Values.service.port }}
+              protocol: UDP
+            - name: dns-tcp
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          securityContext:
+            capabilities:
+              add: [NET_ADMIN]
+          volumeMounts:
+            - name: config
+              mountPath: /run/config
+          {{- if .Values.persistence.enabled }}
+            - name: storage
+              mountPath: /var/lib/dnsmasq
+          {{- end }}
+        - name: kubelan
+          image: '{{ .Values.global.kubelan.image.repository }}:{{ .Values.global.kubelan.image.tag }}'
+          imagePullPolicy: {{ .Values.global.kubelan.image.pullPolicy }}
+          env:
+            - name: KL_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: KL_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+
+            - name: IFACE_IP
+              value: {{ .Values.staticIP | squote }}
+            - name: KL_HOOKS_UP
+              value: 'sh,-c,ip addr add $IFACE_IP dev $IFACE'
+          ports:
+            - name: http
+              containerPort: 8181
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 5
+          securityContext:
+            capabilities:
+              add: [NET_ADMIN]
+          volumeMounts:
+            - name: kubelan-config
+              mountPath: /run/config
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "dnsmasq.fullname" . }}
+        - name: kubelan-config
+          configMap:
+          {{- if .Values.global.kubelan.externalConfigMap }}
+            name: {{ .Values.global.kubelan.externalConfigMap }}
+          {{- else }}
+            name: {{ include "dnsmasq.fullname" . }}-kubelan
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  volumeClaimTemplates:
+  {{- if .Values.persistence.enabled }}
+    - metadata:
+        name: storage
+      spec:
+      {{- if .Values.persistence.storageClass }}
+        storageClassName: {{ .Values.persistence.storageClass }}
+      {{- end }}
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size | squote }}
+  {{- end }}

@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "dnsmasq.fullname" . }}
+  labels:
+    {{- include "dnsmasq.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  {{- if ne (int .Values.service.port) 0 }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: dns
+      protocol: UDP
+      name: dns
+    - port: {{ .Values.service.port }}
+      targetPort: dns-tcp
+      protocol: TCP
+      name: dns-tcp
+  {{- end }}
+  selector:
+    {{- include "dnsmasq.selectorLabels" . | nindent 4 }}
