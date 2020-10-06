@@ -12,10 +12,11 @@ spec:
       {{- include "dnsmasq.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-    {{- with .Values.podAnnotations }}
       annotations:
-        {{- toYaml . | nindent 8 }}
-    {{- end }}
+        checksum/config: {{ print .Values.global.kubelan.vxlan.interface .Values.service.port .Values.upstreamDNS (toYaml .Values.config) | sha256sum }}
+      {{- range $k, $v := .Values.podAnnotations }}
+        {{ $k }}: {{ $v | squote }}
+      {{- end }}
       labels:
         {{- include "dnsmasq.selectorLabels" . | nindent 8 }}
     spec:
