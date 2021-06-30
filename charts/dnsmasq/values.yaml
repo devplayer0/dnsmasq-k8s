@@ -30,7 +30,7 @@ global:
     image:
       repository: ghcr.io/devplayer0/kubelan
       pullPolicy: IfNotPresent
-      tag: 0.2.2
+      tag: 0.2.3
     externalConfigMap:
 
     log_level: DEBUG
