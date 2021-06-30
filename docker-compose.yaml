@@ -10,6 +10,6 @@ services:
       - ./dnsmasq.conf:/run/config/dnsmasq.conf:ro
     cap_add: [NET_ADMIN]
   test_client:
-    image: alpine:3.12
+    image: alpine:3.14
     command: [sleep, infinity]
     stop_signal: SIGKILL
