@@ -8,3 +8,5 @@ COPY entrypoint.sh /
 ENV DEBUG=no \
     ROUTER_NETWORK=
 ENTRYPOINT ["/entrypoint.sh"]
+
+LABEL org.opencontainers.image.source https://github.com/devplayer0/dnsmasq-k8s
