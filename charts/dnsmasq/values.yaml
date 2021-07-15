@@ -62,3 +62,4 @@ persistence:
   enabled: false
   size: 64Mi
   storageClass: ''
+  existingClaim:

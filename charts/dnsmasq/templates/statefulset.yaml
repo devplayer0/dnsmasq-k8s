@@ -99,6 +99,13 @@ spec:
           {{- else }}
             name: {{ include "dnsmasq.fullname" . }}-kubelan
           {{- end }}
+      {{- if and .Values.persistence.enabled .Values.persistence.existingClaim }}
+        - name: storage
+          persistentVolumeClaim:
+          {{- with .Values.persistence.existingClaim }}
+            claimName: {{ tpl . $ }}
+          {{- end }}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -111,8 +118,8 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+  {{- if and .Values.persistence.enabled (not .Values.persistence.existingClaim) }}
   volumeClaimTemplates:
-  {{- if .Values.persistence.enabled }}
     - metadata:
         name: storage
       spec:
